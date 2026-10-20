@@ -8,14 +8,17 @@ header { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-botto
 h1 { margin:0; font-size:14px; flex:1; } button,textarea { color:inherit; background:transparent; border:1px solid var(--border); border-radius:6px; }
 button { padding:6px 10px; cursor:pointer; } button:focus-visible,textarea:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
 label { display:block; margin:8px 0; } textarea { width:100%; height:112px; padding:8px; resize:vertical; font:12px ui-monospace,monospace; }
-#viewport { overflow:auto; height:280px; border:1px solid var(--border); border-radius:6px; display:grid; place-items:center; }
-#diagram { transform-origin:center; } #diagram svg { max-width:none; }
+#viewport { overflow:auto; height:280px; border:1px solid var(--border); border-radius:6px; display:flex; align-items:safe center; justify-content:safe center; }
+#canvas { position:relative; flex-shrink:0; } #diagram { position:absolute; top:0; left:0; transform-origin:top left; } #diagram svg { display:block; max-width:none !important; }
+html[data-display-mode="fullscreen"] body { height:100dvh; display:flex; flex-direction:column; }
+html[data-display-mode="fullscreen"] body > :not(#viewport) { flex-shrink:0; }
+html[data-display-mode="fullscreen"] #viewport { flex:1; min-height:120px; }
 #status { margin:8px 0; color:var(--muted); white-space:pre-wrap; overflow-wrap:anywhere; }
 </style></head><body>
 <header><h1 id="title">Mermaid</h1><button id="render" data-i18n="render"></button><button id="reset" data-i18n="reset"></button><button id="expand" data-i18n="expand"></button></header>
 <label for="source" data-i18n="source"></label><textarea id="source" spellcheck="false" maxlength="100000"></textarea>
 <header><button id="minus" data-i18n="minus"></button><button id="fit" data-i18n="fit"></button><button id="plus" data-i18n="plus"></button><button id="repair" data-i18n="repair" hidden></button></header>
-<p id="status" role="status"></p><div id="viewport"><div id="diagram"></div></div>
+<p id="status" role="status"></p><div id="viewport"><div id="canvas"><div id="diagram"></div></div></div>
 <!-- ENGINE -->
 <!-- WIDGET -->
 </body></html>

@@ -26,6 +26,11 @@ strict security. Editing stays in the mounted frame; a conversation reload
 restores the original tool payload. Repeated host payloads and turn completion
 preserve edits in the mounted frame. The app does not persist unsaved local edits.
 
+Fit reserves the scaled SVG dimensions so tall and wide diagrams stay inside
+the visible canvas. Zoomed diagrams scroll in both directions. Fullscreen uses
+the available window height; resizing and mode changes refit the diagram while
+preserving the current source. Escape returns to the inline editor.
+
 Develop with `bun install --frozen-lockfile`, `bun run build`, and `bun test`.
 The generated self-contained HTML must stay below 4 MiB; commit it and the
 bundled Mermaid license so installed packages need no build step.

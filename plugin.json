@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mermaid",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Preview and edit Mermaid diagrams in chat.",
   "license": "MIT",
   "repository": "https://github.com/BANG404/openagent-mermaid",

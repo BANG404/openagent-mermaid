@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 
 export const RESOURCE_URI = "ui://mermaid/editor.html";
 export const RESOURCE_MIME = "text/html;profile=mcp-app";
-const version = "1.0.0";
+const version = "1.0.1";
 const resource = {
   uri: RESOURCE_URI,
   name: "Mermaid diagram editor",

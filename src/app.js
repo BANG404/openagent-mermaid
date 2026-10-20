@@ -23,14 +23,27 @@ function translate() {
   element("source").setAttribute("aria-label", strings[locale].source);
   element("status").textContent = `${strings[locale][status]}${detail ? `\n${detail}` : ""}`;
 }
-function resize() { send({ method:"ui/notifications/size-changed", params:{ height:document.body.scrollHeight } }); }
-function scale(value) { zoom = Math.max(0.1, Math.min(4, value)); element("diagram").style.transform = `scale(${zoom})`; }
+function resize() {
+  if (!context.displayMode || context.displayMode === "inline") send({ method:"ui/notifications/size-changed", params:{ height:document.body.scrollHeight } });
+}
+function scale(value) {
+  const svg = element("diagram").querySelector("svg");
+  if (!svg || !Number.isFinite(value) || value <= 0) return;
+  zoom = Math.min(4, value);
+  const {width, height} = svg.viewBox.baseVal;
+  svg.style.width = `${width}px`; svg.style.height = `${height}px`;
+  // Layout must reserve the scaled dimensions, not the original SVG bounds.
+  element("canvas").style.width = `${width * zoom}px`;
+  element("canvas").style.height = `${height * zoom}px`;
+  element("diagram").style.transform = `scale(${zoom})`;
+}
 function fit() {
   const svg = element("diagram").querySelector("svg");
   const viewport = element("viewport");
   if (!svg) return;
   const bounds = svg.viewBox.baseVal;
   scale(Math.min(1, (viewport.clientWidth-24)/(bounds.width || 800), (viewport.clientHeight-24)/(bounds.height || 400)));
+  viewport.scrollTop=0; viewport.scrollLeft=0;
 }
 function publishStatus(source) {
   void request("ui/update-model-context", { structuredContent: { mermaid: { source, title, status, error: detail || null } } }).catch(() => {});
@@ -38,7 +51,7 @@ function publishStatus(source) {
 async function render() {
   const current = ++generation;
   const source = element("source").value;
-  if (!source.trim()) { element("diagram").replaceChildren(); status="empty"; detail=""; translate(); resize(); return; }
+  if (!source.trim()) { element("diagram").replaceChildren(); element("canvas").style.cssText=""; element("repair").hidden=true; status="empty"; detail=""; translate(); resize(); publishStatus(source); return; }
   status="loading"; detail=""; translate();
   const theme = context.theme === "dark" ? "dark" : "default";
   // Mermaid has global mutable configuration. Queue the underlying operation.
@@ -55,16 +68,19 @@ async function render() {
     status="ready"; detail=""; element("repair").hidden=true; fit();
   } catch (error) {
     if (current !== generation) return;
-    element("diagram").replaceChildren(); status="failed"; detail=String(error.message || error).slice(0,2000); element("repair").hidden=false;
+    element("diagram").replaceChildren(); element("canvas").style.cssText=""; status="failed"; detail=String(error.message || error).slice(0,2000); element("repair").hidden=false;
   }
   translate(); resize(); publishStatus(source);
 }
 function applyContext(next) {
   const previousTheme = context.theme;
+  const previousMode = context.displayMode;
   context = { ...context, ...next };
   locale = typeof context.locale === "string" && context.locale.toLowerCase().split("-")[0] === "zh" ? "zh" : "en";
   document.documentElement.classList.toggle("dark", context.theme === "dark");
+  document.documentElement.dataset.displayMode = context.displayMode || "inline";
   translate();
+  requestAnimationFrame(() => { if (previousMode !== context.displayMode) fit(); resize(); });
   if (previousTheme !== context.theme && original) void render();
 }
 function applyPayload(payload) {
@@ -103,8 +119,19 @@ element("repair").onclick = async () => {
   catch (error) { status="failed"; detail=error.message; translate(); }
 };
 translate();
+let viewportBounds = element("viewport").getBoundingClientRect();
+let resizeFrame = 0;
+new ResizeObserver(() => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(() => {
+    const next = element("viewport").getBoundingClientRect();
+    if (next.width === viewportBounds.width && next.height === viewportBounds.height) return;
+    viewportBounds = next;
+    fit(); resize();
+  });
+}).observe(element("viewport"), {box:"border-box"});
 try {
-  const result=await request("ui/initialize", { protocolVersion:"2026-01-26", appInfo:{ name:"openagent-mermaid", version:"1.0.0" }, appCapabilities:{} });
+  const result=await request("ui/initialize", { protocolVersion:"2026-01-26", appInfo:{ name:"openagent-mermaid", version:"1.0.1" }, appCapabilities:{} });
   applyContext(result.hostContext || {});
   send({ method:"ui/notifications/initialized", params:{} }); resize();
 } catch (error) { status="failed"; detail=error.message; translate(); }
