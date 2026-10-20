@@ -1,0 +1,9 @@
+{
+  "name": "openagent-mermaid",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": { "build": "bun scripts/build.mjs", "test": "bun test" },
+  "dependencies": { "mermaid": "11.16.1" }
+}

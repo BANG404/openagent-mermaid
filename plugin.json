@@ -1,0 +1,24 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "mermaid",
+  "version": "1.0.0",
+  "description": "Preview and edit Mermaid diagrams in chat.",
+  "license": "MIT",
+  "repository": "https://github.com/BANG404/openagent-mermaid",
+  "extensions": {
+    "openagent": {
+      "category": "development",
+      "capabilities": ["skills", "mcp"],
+      "compatibility": { "plugin_protocol": { "min": 1, "max": 1 } },
+      "mcp_tool_mode": "relay",
+      "i18n": {
+        "supported_locales": ["en", "zh"],
+        "default_locale": "en",
+        "translations": {
+          "en": { "display_name": "Mermaid Diagrams", "description": "Preview and edit Mermaid diagrams in chat." },
+          "zh": { "display_name": "Mermaid 图示", "description": "在聊天中预览和编辑 Mermaid 图示。" }
+        }
+      }
+    }
+  }
+}

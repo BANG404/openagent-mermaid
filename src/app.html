@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root { color-scheme: light; --bg:#fff; --fg:#242424; --muted:#676767; --border:#ddd; }
+:root.dark { color-scheme: dark; --bg:#18181b; --fg:#eee; --muted:#aaa; --border:#444; }
+* { box-sizing:border-box; } body { margin:0; padding:12px; color:var(--fg); background:var(--bg); font:14px system-ui,sans-serif; }
+header { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px; }
+h1 { margin:0; font-size:14px; flex:1; } button,textarea { color:inherit; background:transparent; border:1px solid var(--border); border-radius:6px; }
+button { padding:6px 10px; cursor:pointer; } button:focus-visible,textarea:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+label { display:block; margin:8px 0; } textarea { width:100%; height:112px; padding:8px; resize:vertical; font:12px ui-monospace,monospace; }
+#viewport { overflow:auto; height:280px; border:1px solid var(--border); border-radius:6px; display:grid; place-items:center; }
+#diagram { transform-origin:center; } #diagram svg { max-width:none; }
+#status { margin:8px 0; color:var(--muted); white-space:pre-wrap; overflow-wrap:anywhere; }
+</style></head><body>
+<header><h1 id="title">Mermaid</h1><button id="render" data-i18n="render"></button><button id="reset" data-i18n="reset"></button><button id="expand" data-i18n="expand"></button></header>
+<label for="source" data-i18n="source"></label><textarea id="source" spellcheck="false" maxlength="100000"></textarea>
+<header><button id="minus" data-i18n="minus"></button><button id="fit" data-i18n="fit"></button><button id="plus" data-i18n="plus"></button><button id="repair" data-i18n="repair" hidden></button></header>
+<p id="status" role="status"></p><div id="viewport"><div id="diagram"></div></div>
+<!-- ENGINE -->
+<!-- WIDGET -->
+</body></html>
