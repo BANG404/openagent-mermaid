@@ -3,6 +3,10 @@
 Preview and edit Mermaid diagrams in a sandboxed MCP App. Rendering works offline
 with the bundled Mermaid 11.16.1 engine. English and Chinese UI follow the host's
 locale; theme changes keep the current source edits.
+The editor follows MCP Apps `hostContext.styles.variables` for surface, text
+and border colors, including switches between theme packages in the same mode.
+Mermaid uses explicit dark-mode derivation and themed ER attribute rows. Hosts
+without style variables receive the editor's built-in light/dark palette.
 
 在隔离的 MCP App 中预览和编辑 Mermaid 图示，内置 Mermaid 引擎，支持离线渲染。
 界面跟随宿主的中英文和明暗主题设置，切换时保留编辑内容。

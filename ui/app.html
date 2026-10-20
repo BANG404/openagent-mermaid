@@ -29,6 +29,36 @@ let context = {}, locale = "en", original = "", title = "", status = "empty", de
 let sequence = 0, generation = 0, zoom = 1;
 let renderQueue = Promise.resolve();
 const pending = new Map();
+function themeConfig() {
+  const darkMode = context.theme === "dark";
+  const variables = context.styles?.variables || {};
+  const color = (name, fallback) => {
+    const value = variables[name];
+    if (typeof value !== "string" || !CSS.supports("color", value)) return fallback;
+    const canvas = document.createElement("canvas"), ctx = canvas.getContext("2d");
+    ctx.fillStyle = value; ctx.fillRect(0, 0, 1, 1);
+    const [r,g,b,a] = ctx.getImageData(0,0,1,1).data;
+    return a === 255 ? `#${[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("")}` : `rgba(${r},${g},${b},${a/255})`;
+  };
+  const bg = color("--color-background-primary", darkMode ? "#18181b" : "#ffffff");
+  const secondary = color("--color-background-secondary", darkMode ? "#27272a" : "#f4f4f5");
+  const fg = color("--color-text-primary", darkMode ? "#eeeeee" : "#242424");
+  const muted = color("--color-text-secondary", darkMode ? "#aaaaaa" : "#676767");
+  const border = color("--color-border-primary", darkMode ? "#52525b" : "#d4d4d8");
+  const themeVariables = { darkMode };
+  for (const [value, keys] of [
+    [bg, ["background","mainBkg","primaryColor","actorBkg","labelBoxBkgColor","clusterBkg","edgeLabelBackground","rowOdd","attributeBackgroundColorOdd"]],
+    [secondary, ["secondaryColor","tertiaryColor","activationBkgColor","noteBkgColor","rowEven","attributeBackgroundColorEven","altSectionBkgColor"]],
+    [fg, ["textColor","primaryTextColor","nodeTextColor","secondaryTextColor","tertiaryTextColor","titleColor","actorTextColor","signalTextColor","labelTextColor","loopTextColor","noteTextColor","taskTextColor","taskTextOutsideColor","taskTextLightColor","taskTextDarkColor"]],
+    [border, ["primaryBorderColor","secondaryBorderColor","tertiaryBorderColor","nodeBorder","clusterBorder","actorBorder","labelBoxBorderColor","noteBorderColor","gridColor"]],
+    [muted, ["lineColor","signalColor","activationBorderColor","actorLineColor","arrowheadColor"]],
+  ]) for (const key of keys) themeVariables[key] = value;
+  document.documentElement.style.setProperty("--bg", bg);
+  document.documentElement.style.setProperty("--fg", fg);
+  document.documentElement.style.setProperty("--muted", muted);
+  document.documentElement.style.setProperty("--border", border);
+  return { theme:"base", themeVariables };
+}
 const send = message => parent.postMessage({ jsonrpc:"2.0", ...message }, "*");
 function request(method, params) {
   const id = ++sequence;
@@ -75,11 +105,11 @@ async function render() {
   const source = element("source").value;
   if (!source.trim()) { element("diagram").replaceChildren(); element("canvas").style.cssText=""; element("repair").hidden=true; status="empty"; detail=""; translate(); resize(); publishStatus(source); return; }
   status="loading"; detail=""; translate();
-  const theme = context.theme === "dark" ? "dark" : "default";
+  const theme = themeConfig();
   // Mermaid has global mutable configuration. Queue the underlying operation.
   const operation = renderQueue.catch(() => {}).then(async () => {
     if (current !== generation) return;
-    mermaid.initialize({ startOnLoad:false, securityLevel:"strict", theme, suppressErrorRendering:true, maxTextSize:100000 });
+    mermaid.initialize({ startOnLoad:false, securityLevel:"strict", ...theme, suppressErrorRendering:true, maxTextSize:100000 });
     return mermaid.render(`diagram-${current}`, source);
   });
   renderQueue = operation.then(() => {}, () => {});
@@ -95,15 +125,16 @@ async function render() {
   translate(); resize(); publishStatus(source);
 }
 function applyContext(next) {
-  const previousTheme = context.theme;
+  const previousTheme = JSON.stringify([context.theme, context.styles?.variables]);
   const previousMode = context.displayMode;
   context = { ...context, ...next };
   locale = typeof context.locale === "string" && context.locale.toLowerCase().split("-")[0] === "zh" ? "zh" : "en";
   document.documentElement.classList.toggle("dark", context.theme === "dark");
   document.documentElement.dataset.displayMode = context.displayMode || "inline";
+  themeConfig();
   translate();
   requestAnimationFrame(() => { if (previousMode !== context.displayMode) fit(); resize(); });
-  if (previousTheme !== context.theme && original) void render();
+  if (previousTheme !== JSON.stringify([context.theme, context.styles?.variables]) && original) void render();
 }
 function applyPayload(payload) {
   if (!payload || typeof payload.source !== "string") return;
@@ -153,7 +184,7 @@ new ResizeObserver(() => {
   });
 }).observe(element("viewport"), {box:"border-box"});
 try {
-  const result=await request("ui/initialize", { protocolVersion:"2026-01-26", appInfo:{ name:"openagent-mermaid", version:"1.0.1" }, appCapabilities:{} });
+  const result=await request("ui/initialize", { protocolVersion:"2026-01-26", appInfo:{ name:"openagent-mermaid", version:"1.0.2" }, appCapabilities:{} });
   applyContext(result.hostContext || {});
   send({ method:"ui/notifications/initialized", params:{} }); resize();
 } catch (error) { status="failed"; detail=error.message; translate(); }
