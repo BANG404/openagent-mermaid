@@ -16,13 +16,20 @@ uses the host-provided Node interpreter and has no credential or configuration
 requirements. Its relay tool is discovered on request; default diagrams in
 OpenAgent remain reply-text AGUI `Mermaid(source: ..., title?: ...)` components.
 
-`render_mermaid` accepts complete `source` and optional `title`, returns a
-prepared payload, and links `ui://mermaid/editor.html` with MIME type
-`text/html;profile=mcp-app`. Browser rendering validates the diagram in the app.
-On a syntax error, edit and render again or explicitly ask the Agent to fix it.
-The app reports rendering status through `ui/update-model-context`.
-Hosts without MCP Apps receive a text response and structured source. The server
-does not claim browser validation from its preparation result.
+`render_mermaid` accepts complete `source` and optional `title`. It waits for
+actual browser rendering and returns the original MCP ToolResult with `ok`,
+`status`, diagram type and dimensions, or the concrete render error. App-only
+claim/completion tools correlate an opaque one-shot render ID. A missing or
+closed frontend fails after 25 seconds. The server requires MCP Apps MIME support, and the app checks the host
+`openagent/tool-result-from-app` capability. A host without that capability
+receives a bounded timeout error instead of a false success. No headless browser or
+network is required.
+
+The diagram uses the same figure/canvas and top-right fit, zoom, fullscreen,
+copy-source and PNG/SVG download controls as host AGUI Mermaid. Source editing
+is initially collapsed. Actual local edits also update model context; they do
+not replace a completed ToolResult. Syntax failures offer an explicit Agent
+repair action. The tool's error remains available to the model for correction.
 
 The UI verifies parent messages and performs the standard MCP Apps initialization
 handshake. It requests no network access. Source is data and Mermaid runs with
